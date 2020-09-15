@@ -1,4 +1,7 @@
 import cv2
+import sys
+import os
+import numpy as np
 
 def find_edges(im,axis):
     #Search for the last row or column of pixels on each side which are only white or black
@@ -24,16 +27,31 @@ def crop(im):
     #Remove axes labels from image
     y0,y1=find_edges(im,0)
     x0,x1=find_edges(im,1)
-    print('x edges')
-    print((x0,x1))
-    print('y edges')
-    print((y0,y1))
     cropped_im=im[y0:y1,x0:x1]
     return cropped_im
 
-imfile=r'C:\Users\stone\Downloads\RPEminus_20033_OD0000AmR.tif'
-im=cv2.imread(imfile,cv2.IMREAD_GRAYSCALE)
-im_cropped=crop(im)
-cv2.imshow('Original',im)
-cv2.imshow('Cropped',im_cropped)
-cv2.waitKey(0)
+def stitch(ims):
+    stitcher=cv2.Stitcher.create(cv2.Stitcher_SCANS)
+    retval,stitched=stitcher.stitch(ims)
+    print(retval)
+    return stitched
+'''
+def stitch(ims):
+    stitcher=cv2.Stitcher.create(1)
+    stitched=ims.pop(0)
+    count=0
+    while ims:
+        print(f'count={count}, len(ims)={len(ims)}')
+        count+=1
+        try:
+            toadd=ims.pop(0)
+            retval,stitched=stitcher.stitch([stitched,toadd])
+        except(cv2.error):
+            ims.append(toadd)
+    return stitched
+'''
+imdir=sys.argv[-1]
+im_paths=[a for a in os.listdir(imdir) if '.tif' in a]
+ims=[cv2.cvtColor(crop(cv2.imread(os.path.join(imdir,b),cv2.IMREAD_GRAYSCALE)),cv2.COLOR_GRAY2BGR) for b in im_paths]
+stitched=stitch(ims)
+cv2.imwrite(os.path.join(imdir,'stitched.tif'),stitched)
