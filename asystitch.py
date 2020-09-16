@@ -9,10 +9,13 @@ def find_edges(im,axis):
     y_end=im.shape[axis]
     for i in range(im.shape[axis]):
         if axis==0:
-            this_row_vals=set(im[i,:])
+            #this_row_vals=set(im[i,:])
+            this_row_med=np.median(im[i,:])
         elif axis==1:
-            this_row_vals=set(im[:,i])
-        if this_row_vals==set([255,0]):
+            #this_row_vals=set(im[:,i])
+            this_row_med=np.median(im[:,i])
+        #if this_row_vals==set([255,0]):
+        if this_row_med==255:
             #possible edge row
             if i<im.shape[axis]/2:
                 #top edge
@@ -21,7 +24,7 @@ def find_edges(im,axis):
                 #bottom edge
                 y_end=i
                 break
-    return y_start,y_end
+    return y_start+2,y_end-2
 
 def crop(im):
     #Remove axes labels from image
@@ -31,7 +34,7 @@ def crop(im):
     return cropped_im
 
 def stitch(ims):
-    stitcher=cv2.Stitcher.create(cv2.Stitcher_SCANS)
+    stitcher=cv2.Stitcher.create(cv2.Stitcher_PANORAMA)
     retval,stitched=stitcher.stitch(ims)
     print(retval)
     return stitched
@@ -50,8 +53,12 @@ def stitch(ims):
             ims.append(toadd)
     return stitched
 '''
-imdir=sys.argv[-1]
-im_paths=[a for a in os.listdir(imdir) if '.tif' in a]
-ims=[cv2.cvtColor(crop(cv2.imread(os.path.join(imdir,b),cv2.IMREAD_GRAYSCALE)),cv2.COLOR_GRAY2BGR) for b in im_paths]
-stitched=stitch(ims)
-cv2.imwrite(os.path.join(imdir,'stitched.tif'),stitched)
+if __name__=='__main__':
+    imdir=sys.argv[-1]
+    im_paths=[a for a in os.listdir(imdir) if '.tif' in a]
+    ims=[cv2.cvtColor(crop(cv2.imread(os.path.join(imdir,b),cv2.IMREAD_GRAYSCALE)),cv2.COLOR_GRAY2BGR) for b in im_paths]
+    for i in ims:
+        cv2.imshow('hi',i)
+        cv2.waitKey(0)
+    stitched=stitch(ims)
+    cv2.imwrite(os.path.join(imdir,'stitched.tif'),stitched)
