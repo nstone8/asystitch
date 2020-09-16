@@ -51,7 +51,11 @@ def stitch(ims):
     return stitched
 '''
 imdir=sys.argv[-1]
+if not os.path.exists(os.path.join(imdir,'cropped')):
+    os.mkdir(os.path.join(imdir,'cropped'))
 im_paths=[a for a in os.listdir(imdir) if '.tif' in a]
-ims=[cv2.cvtColor(crop(cv2.imread(os.path.join(imdir,b),cv2.IMREAD_GRAYSCALE)),cv2.COLOR_GRAY2BGR) for b in im_paths]
-stitched=stitch(ims)
-cv2.imwrite(os.path.join(imdir,'stitched.tif'),stitched)
+for im in im_paths:
+    cv2.imwrite(os.path.join(imdir,'cropped',im),crop(cv2.imread(os.path.join(imdir,im),cv2.IMREAD_GRAYSCALE)))
+#ims=[cv2.cvtColor(crop(cv2.imread(os.path.join(imdir,b),cv2.IMREAD_GRAYSCALE)),cv2.COLOR_GRAY2BGR) for b in im_paths]
+#stitched=stitch(ims)
+#cv2.imwrite(os.path.join(imdir,'stitched.tif'),stitched)
